@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Australia Trip Budget Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<style>
+  :root {
+    --yellow: #FFC107;
+    --yellow-light: #FFF8DC;
+    --yellow-dark: #E5A800;
+    --yellow-pale: #FFFBEE;
+    --white: #FFFFFF;
+    --black: #1A1A1A;
+    --charcoal: #333333;
+    --grey: #6B7280;
+    --grey-light: #F3F4F6;
+    --grey-border: #E5E7EB;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+    --shadow-lg: 0 20px 48px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.06);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #F7F6F2;
+    color: var(--charcoal);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ─── HEADER ─── */
+  .hero {
+    background: var(--charcoal);
+    color: var(--white);
+    padding: 48px 32px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255,193,7,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-flag {
+    display: inline-flex; gap: 8px; align-items: center;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 13px; font-weight: 500; color: #ccc;
+    margin-bottom: 18px;
+    letter-spacing: 0.5px;
+  }
+  .hero-flag span { font-size: 18px; }
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin-bottom: 10px;
+  color: #FFFFFF !important; /* Yeh force karega ke color white hi rahe */
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--yellow) !important;
+}
+.hero p {
+  color: #cccccc !important; /* Theme ko is text ko black karne se rokega */
+  font-size: 15px; font-weight: 300; max-width: 520px; margin: 0 auto;
+}
+
+  /* ─── LAYOUT ─── */
+  .app-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 28px;
+    align-items: start;
+  }
+
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--grey-border);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .card-header:hover { background: var(--yellow-pale); }
+  .card-number {
+    width: 34px; height: 34px;
+    background: var(--yellow);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; color: var(--black);
+    flex-shrink: 0;
+  }
+  .card-header h2 { font-size: 15px; font-weight: 600; flex: 1; }
+  .card-header .chevron {
+    color: var(--grey); font-size: 13px;
+    transition: transform 0.25s;
+  }
+  .card.open .chevron { transform: rotate(180deg); }
+  .card-body { padding: 24px; display: none; }
+  .card.open .card-body { display: block; }
+
+  /* ─── FORM ELEMENTS ─── */
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+  .form-row.full { grid-template-columns: 1fr; }
+  .form-row.two { grid-template-columns: 1fr 1fr; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label {
+    font-size: 12.5px; font-weight: 600;
+    color: var(--grey); text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .field input[type="number"],
+  .field select {
+    padding: 11px 14px;
+    border: 1.5px solid var(--grey-border);
+    border-radius: var(--radius-sm);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px; color: var(--charcoal);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  .field input[type="number"]:focus,
+  .field select:focus {
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 3px rgba(255,193,7,0.15);
+  }
+
+  /* Radio pills */
+  .radio-group { display: flex; gap: 8px; flex-wrap: wrap; }
+  .radio-pill input { display: none; }
+  .radio-pill label {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 16px;
+    border: 1.5px solid var(--grey-border);
+    border-radius: 999px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--charcoal);
+    white-space: nowrap;
+  }
+  .radio-pill input:checked + label {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: var(--black);
+    font-weight: 600;
+  }
+  .radio-pill label:hover { border-color: var(--yellow-dark); background: var(--yellow-pale); }
+
+  /* Toggle switch */
+  .toggle-row { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  .toggle-wrap { display: flex; align-items: center; gap: 6px; }
+  .toggle-btn {
+    display: flex; border: 1.5px solid var(--grey-border);
+    border-radius: 999px; overflow: hidden;
+  }
+  .toggle-btn input { display: none; }
+  .toggle-btn label {
+    padding: 8px 16px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; color: var(--grey);
+    transition: all 0.15s;
+  }
+  .toggle-btn input:checked + label {
+    background: var(--yellow);
+    color: var(--black); font-weight: 600;
+  }
+
+  /* Checkbox */
+  .checkbox-group { display: flex; flex-direction: column; gap: 10px; }
+  .check-item { display: flex; align-items: center; gap: 10px; }
+  .check-item input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--yellow);
+    cursor: pointer; flex-shrink: 0;
+  }
+  .check-item label {
+    font-size: 14px; font-weight: 400; cursor: pointer;
+  }
+
+  /* Section label */
+  .section-label {
+    font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--grey);
+    margin-bottom: 10px; margin-top: 20px;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* Conditional field */
+  .conditional { display: none; }
+  .conditional.show { display: block; }
+
+  /* ─── RESULTS PANEL ─── */
+  .results-col { position: sticky; top: 24px; }
+
+  .results-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .results-top {
+    background: var(--charcoal);
+    padding: 28px 24px 24px;
+    color: var(--white);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .results-top::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 140%, rgba(255,193,7,0.25), transparent 60%);
+    pointer-events: none;
+  }
+.results-top-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1.5px; 
+  color: #cccccc !important; /* Fix kiya gaya hai */
+  margin-bottom: 8px;
+}
+.grand-total {
+  font-family: 'DM Serif Display', serif;
+  font-size: 3rem; font-weight: 400; line-height: 1;
+  color: var(--yellow) !important;
+  margin-bottom: 4px;
+  letter-spacing: -1px;
+}
+.grand-total .currency-sym { font-size: 1.8rem; vertical-align: super; }
+.grand-total-label { 
+  font-size: 13px; 
+  color: #aaaaaa !important; /* Fix kiya gaya hai */
+  font-weight: 300; 
+}
+
+
+  .results-body { padding: 20px 22px; }
+
+  .breakdown-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--grey); margin-bottom: 14px;
+  }
+
+  .breakdown-list { list-style: none; margin-bottom: 18px; }
+  .breakdown-list li {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--grey-border);
+    font-size: 13.5px;
+  }
+  .breakdown-list li:last-child { border-bottom: none; }
+  .breakdown-list .item-label { display: flex; align-items: center; gap: 9px; color: var(--grey); }
+  .breakdown-list .item-label i { width: 16px; color: var(--yellow-dark); font-size: 13px; }
+  .breakdown-list .item-val { font-weight: 600; color: var(--charcoal); }
+  .breakdown-list .item-val.surcharge { color: var(--grey); font-weight: 400; font-size: 12.5px; }
+
+  .divider { border: none; border-top: 2px dashed var(--grey-border); margin: 14px 0; }
+
+  .total-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 15px; font-weight: 700; color: var(--charcoal);
+    padding: 4px 0 14px;
+  }
+  .total-row .total-amt { color: var(--yellow-dark); font-size: 17px; }
+
+  /* Currency converter */
+  .currency-section {
+    background: var(--grey-light);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .currency-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--grey); margin-bottom: 10px;
+  }
+  .currency-grid { display: flex; flex-direction: column; gap: 7px; }
+  .currency-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px;
+  }
+  .currency-row .c-flag { font-size: 17px; margin-right: 6px; }
+  .currency-row .c-label { color: var(--grey); display: flex; align-items: center; }
+  .currency-row .c-val { font-weight: 600; color: var(--charcoal); font-size: 13.5px; }
+
+  /* Pro tip */
+  .pro-tip {
+    background: var(--yellow-light);
+    border-left: 3px solid var(--yellow);
+    border-radius: var(--radius-xs);
+    padding: 11px 14px;
+    font-size: 12.5px;
+    color: #6B5900;
+    line-height: 1.5;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .pro-tip i { color: var(--yellow-dark); margin-top: 1px; flex-shrink: 0; }
+
+  /* Calc button */
+  .calc-btn {
+    display: block; width: 100%;
+    background: var(--yellow);
+    color: var(--black);
+    border: none;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    font-family: 'Poppins', sans-serif;
+    font-size: 14.5px; font-weight: 700;
+    cursor: pointer;
+    margin: 16px 0 0;
+    transition: background 0.15s, transform 0.1s;
+    letter-spacing: 0.2px;
+  }
+  .calc-btn:hover { background: var(--yellow-dark); }
+  .calc-btn:active { transform: scale(0.99); }
+
+  /* Per-day badge */
+  .per-day-badge {
+    display: inline-block;
+    background: var(--yellow-pale);
+    border: 1px solid #FDDEA5;
+    color: #7A5A00;
+    font-size: 11.5px; font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-top: 8px;
+  }
+
+  /* Info tooltip */
+  .info-note {
+    font-size: 12px; color: var(--grey);
+    margin-top: 6px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .info-note i { color: var(--yellow-dark); }
+
+  hr.section-divider {
+    border: none; border-top: 1px solid var(--grey-border);
+    margin: 22px 0;
+  }
+
+  /* ─── RESPONSIVE ADJUSTMENTS (FIXED) ─── */
+@media(max-width: 900px) {
+  .app-wrap { 
+    grid-template-columns: 1fr; 
+    gap: 24px;
+  }
+  .results-col { 
+    position: relative; /* Sticky effect hatane ke liye */
+    top: 0;
+    order: 2; /* Yeh result card ko form ke nichy (bottom par) layega */
+  }
+}
+
+@media(max-width: 600px) {
+  /* Hero Section */
+  .hero { padding: 32px 16px 24px; }
+  .hero h1 { font-size: 2.2rem; }
+  .app-wrap { padding: 16px 12px 40px; }
+
+  /* Inputs & Grids */
+  .form-row { grid-template-columns: 1fr !important; }
+  
+  /* Radio Buttons (Budget/Moderate/Luxury) */
+  .radio-group { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .radio-pill label { width: 100%; justify-content: center; }
+
+  /* Toggles (Season & City) */
+  .toggle-btn { flex-direction: column; border-radius: var(--radius-sm); }
+  .toggle-btn label { width: 100%; text-align: center; border-bottom: 1px solid var(--grey-border); }
+  .toggle-btn label:last-child { border-bottom: none; }
+
+  /* Checkboxes */
+  .check-item { align-items: flex-start; }
+  .check-item input[type="checkbox"] { margin-top: 4px; }
+
+  /* Totals */
+  .grand-total { font-size: 2.4rem; }
+  .grand-total .currency-sym { font-size: 1.4rem; }
+}
+
+@media(max-width: 350px) {
+  .card-header h2 { font-size: 13.5px; }
+  .hero h1 { font-size: 1.8rem; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-flag"><span>🇦🇺</span> Australia Trip Planner</div>
+  <h1>Plan Your <em>Perfect</em><br/>Australian Adventure</h1>
+  <p>Fill in your travel details and get an instant personalised budget breakdown in AUD &amp; more.</p>
+</div>
+
+<div class="app-wrap">
+
+  <!-- ───── LEFT: INPUT SECTIONS ───── -->
+  <div class="inputs-col">
+
+    <!-- STEP 1: BASICS -->
+    <div class="card open" id="card1">
+      <div class="card-header" onclick="toggleCard('card1')">
+        <div class="card-number">1</div>
+        <h2><i class="fa-solid fa-suitcase" style="color:var(--yellow-dark);margin-right:8px;"></i>Trip Basics</h2>
+        <i class="fa-solid fa-chevron-down chevron"></i>
+      </div>
+      <div class="card-body">
+
+        <p class="section-label">Travellers</p>
+        <div class="form-row">
+          <div class="field">
+            <label><i class="fa-solid fa-person"></i> Adults</label>
+            <input type="number" id="adults" value="2" min="1" max="20" />
+          </div>
+          <div class="field">
+            <label><i class="fa-solid fa-child"></i> Children</label>
+            <input type="number" id="children" value="0" min="0" max="20" />
+          </div>
+          <div class="field">
+            <label><i class="fa-solid fa-calendar-days"></i> Total Days</label>
+            <input type="number" id="days" value="14" min="1" max="365" />
+          </div>
+        </div>
+
+        <hr class="section-divider" />
+        <p class="section-label">Travel Style</p>
+        <div class="radio-group" id="styleGroup">
+          <div class="radio-pill">
+            <input type="radio" name="style" id="budget" value="budget" />
+            <label for="budget"><i class="fa-solid fa-seedling"></i> Budget</label>
+          </div>
+          <div class="radio-pill">
+            <input type="radio" name="style" id="moderate" value="moderate" checked />
+            <label for="moderate"><i class="fa-solid fa-star-half-stroke"></i> Moderate</label>
+          </div>
+          <div class="radio-pill">
+            <input type="radio" name="style" id="luxury" value="luxury" />
+            <label for="luxury"><i class="fa-solid fa-gem"></i> Luxury</label>
+          </div>
+        </div>
+
+        <hr class="section-divider" />
+        <p class="section-label">Travel Season</p>
+        <div class="toggle-btn">
+          <input type="radio" name="season" id="normalSeason" value="normal" checked />
+          <label for="normalSeason">Normal Season</label>
+          <input type="radio" name="season" id="peakSeason" value="peak" />
+          <label for="peakSeason">🌞 Peak (Dec–Feb)</label>
+        </div>
+        <p class="info-note"><i class="fa-solid fa-circle-info"></i> Peak season applies +25% to accommodation &amp; campervan costs.</p>
+
+        <hr class="section-divider" />
+        <p class="section-label">Main City Tier</p>
+        <div class="toggle-btn">
+          <input type="radio" name="city" id="tier1" value="tier1" checked />
+          <label for="tier1">Tier 1 — Sydney / Melbourne</label>
+          <input type="radio" name="city" id="tier2" value="tier2" />
+          <label for="tier2">Tier 2 — Adelaide / Perth</label>
+        </div>
+        <p class="info-note"><i class="fa-solid fa-circle-info"></i> Tier 2 cities apply a 15% discount to accommodation &amp; food.</p>
+
+      </div>
+    </div>
+
+    <!-- STEP 2: TRANSPORT & ESSENTIALS -->
+    <div class="card open" id="card2">
+      <div class="card-header" onclick="toggleCard('card2')">
+        <div class="card-number">2</div>
+        <h2><i class="fa-solid fa-plane-departure" style="color:var(--yellow-dark);margin-right:8px;"></i>Transport &amp; Essentials</h2>
+        <i class="fa-solid fa-chevron-down chevron"></i>
+      </div>
+      <div class="card-body">
+
+        <p class="section-label">Inter-city Travel</p>
+        <div class="field" style="margin-bottom:12px;">
+          <label>Travel Method</label>
+          <select id="transport" onchange="handleTransportChange()">
+            <option value="none">None / Stay in One City</option>
+            <option value="flights">✈️ Domestic Flights</option>
+            <option value="car">🚗 Car Rental</option>
+            <option value="campervan">🚐 Campervan</option>
+          </select>
+        </div>
+
+        <div class="conditional" id="flightsField">
+          <div class="field" style="max-width:200px;">
+            <label><i class="fa-solid fa-plane"></i> No. of One-way Flights</label>
+            <input type="number" id="numFlights" value="2" min="1" max="50" />
+          </div>
+          <p class="info-note" style="margin-bottom:0;"><i class="fa-solid fa-circle-info"></i> $185 per flight per person</p>
+        </div>
+
+        <hr class="section-divider" />
+        <p class="section-label">Airport Transfer</p>
+        <div class="radio-group">
+          <div class="radio-pill">
+            <input type="radio" name="airport" id="airportTrain" value="train" checked />
+            <label for="airportTrain"><i class="fa-solid fa-train-subway"></i> Train/Bus ($20/person)</label>
+          </div>
+          <div class="radio-pill">
+            <input type="radio" name="airport" id="airportRide" value="rideshare" />
+            <label for="airportRide"><i class="fa-solid fa-car-side"></i> Rideshare/Taxi ($65 flat)</label>
+          </div>
+        </div>
+
+        <hr class="section-divider" />
+        <p class="section-label">Travel Essentials</p>
+        <div class="checkbox-group">
+          <div class="check-item">
+            <input type="checkbox" id="visa" checked />
+            <label for="visa"><i class="fa-solid fa-passport" style="color:var(--yellow-dark);margin-right:6px;"></i>Tourist Visa — $195/adult</label>
+          </div>
+          <div class="check-item">
+            <input type="checkbox" id="insurance" checked />
+            <label for="insurance"><i class="fa-solid fa-shield-halved" style="color:var(--yellow-dark);margin-right:6px;"></i>Travel Insurance — $65/week/person</label>
+          </div>
+          <div class="check-item">
+            <input type="checkbox" id="sim" checked />
+            <label for="sim"><i class="fa-solid fa-sim-card" style="color:var(--yellow-dark);margin-right:6px;"></i>Local SIM Card — $35/person</label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STEP 3: ACTIVITIES -->
+    <div class="card open" id="card3">
+      <div class="card-header" onclick="toggleCard('card3')">
+        <div class="card-number">3</div>
+        <h2><i class="fa-solid fa-binoculars" style="color:var(--yellow-dark);margin-right:8px;"></i>Activities &amp; Tours</h2>
+        <i class="fa-solid fa-chevron-down chevron"></i>
+      </div>
+      <div class="card-body">
+
+        <p class="section-label">Premium Experiences</p>
+        <div class="checkbox-group" style="margin-bottom:18px;">
+          <div class="check-item">
+            <input type="checkbox" id="reef" />
+            <label for="reef"><i class="fa-solid fa-fish" style="color:#00B4D8;margin-right:6px;"></i>Great Barrier Reef Tour — $300/person (children −30%)</label>
+          </div>
+          <div class="check-item">
+            <input type="checkbox" id="bridge" />
+            <label for="bridge"><i class="fa-solid fa-bridge" style="color:#666;margin-right:6px;"></i>Harbour Bridge Climb — $380/person (children −30%)</label>
+          </div>
+        </div>
+
+        <hr class="section-divider" />
+        <p class="section-label">General Activities</p>
+        <div class="form-row">
+          <div class="field">
+            <label><i class="fa-solid fa-landmark"></i> Museum/Zoo Visits</label>
+            <input type="number" id="standardActivities" value="2" min="0" max="50" />
+          </div>
+          <div class="field">
+            <label><i class="fa-solid fa-map-location-dot"></i> Guided Day Trips</label>
+            <input type="number" id="dayTrips" value="1" min="0" max="50" />
+          </div>
+        </div>
+        <p class="info-note"><i class="fa-solid fa-circle-info"></i> Museum/Zoo: $45/person · Day Trip: $150/person (children −30%)</p>
+
+        <button class="calc-btn" onclick="calculate()">
+          <i class="fa-solid fa-calculator"></i>&nbsp; Calculate My Budget
+        </button>
+
+      </div>
+    </div>
+
+  </div><!-- end inputs-col -->
+
+  <!-- ───── RIGHT: RESULTS ───── -->
+  <div class="results-col">
+    <div class="results-card">
+      <div class="results-top">
+        <div class="results-top-label">Estimated Total Budget</div>
+        <div class="grand-total"><span class="currency-sym">A$</span><span id="grandTotalVal">0</span></div>
+        <div class="grand-total-label">Australian Dollars (incl. 1.5% card surcharge)</div>
+        <div id="perDayBadge" class="per-day-badge" style="margin-top:10px;">A$0 / day</div>
+      </div>
+
+      <div class="results-body">
+        <div class="breakdown-title"><i class="fa-solid fa-list-ul" style="margin-right:6px;"></i>Cost Breakdown</div>
+
+        <ul class="breakdown-list">
+          <li>
+            <span class="item-label"><i class="fa-solid fa-bed"></i> Accommodation</span>
+            <span class="item-val" id="bAccom">A$0</span>
+          </li>
+          <li>
+            <span class="item-label"><i class="fa-solid fa-utensils"></i> Food &amp; Drinks</span>
+            <span class="item-val" id="bFood">A$0</span>
+          </li>
+          <li>
+            <span class="item-label"><i class="fa-solid fa-car"></i> Transport</span>
+            <span class="item-val" id="bTransport">A$0</span>
+          </li>
+          <li>
+            <span class="item-label"><i class="fa-solid fa-ticket"></i> Activities</span>
+            <span class="item-val" id="bActivities">A$0</span>
+          </li>
+          <li>
+            <span class="item-label"><i class="fa-solid fa-shield-halved"></i> Fixed Costs</span>
+            <span class="item-val" id="bFixed">A$0</span>
+          </li>
+        </ul>
+
+        <hr class="divider" />
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span id="subtotalVal">A$0</span>
+        </div>
+        <ul class="breakdown-list">
+          <li>
+            <span class="item-label"><i class="fa-solid fa-percent"></i> Card Surcharge (1.5%)</span>
+            <span class="item-val surcharge" id="bSurcharge">A$0</span>
+          </li>
+        </ul>
+        <hr class="divider" />
+        <div class="total-row" style="font-size:16px;padding-top:6px;">
+          <span>Grand Total (AUD)</span>
+          <span class="total-amt" id="grandTotalRow">A$0</span>
+        </div>
+
+        <!-- Currency Converter -->
+        <div class="currency-section">
+          <div class="currency-title"><i class="fa-solid fa-coins" style="margin-right:5px;"></i>Currency Estimates</div>
+          <div class="currency-grid">
+            <div class="currency-row">
+              <span class="c-label"><span class="c-flag">🇵🇰</span> Pakistani Rupee (PKR)</span>
+              <span class="c-val" id="cPKR">₨ 0</span>
+            </div>
+            <div class="currency-row">
+              <span class="c-label"><span class="c-flag">🇺🇸</span> US Dollar (USD)</span>
+              <span class="c-val" id="cUSD">$ 0</span>
+            </div>
+            <div class="currency-row">
+              <span class="c-label"><span class="c-flag">🇬🇧</span> British Pound (GBP)</span>
+              <span class="c-val" id="cGBP">£ 0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pro Tip -->
+        <div class="pro-tip">
+          <i class="fa-solid fa-lightbulb"></i>
+          <span><strong>Pro Tip:</strong> Tipping is not mandatory in Australia. All prices include 10% GST. Budget tip: grocery shopping saves ~60% vs eating out.</span>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- end results-col -->
+
+</div><!-- end app-wrap -->
+
+<script>
+// ─── PRICING DATA (hardcoded per spec) ──────────────────────
+const PRICES = {
+  accom:            { budget: 55, moderate: 200, luxury: 450 },
+  food:             { budget: 25, moderate: 80,  luxury: 200 },
+  publicTransport:  20,   // per person per day
+  flights:          185,  // per person per one-way flight
+  carRental:        80,   // per day (group, not per person)
+  campervan:        175,  // per day (group, not per person)
+  airportTrain:     20,   // per person each way
+  airportRideshare: 65,   // flat rate each way
+  visa:             195,  // per person (adults + children)
+  insurance:        65,   // per week per person
+  sim:              35,   // per adult only (children don't need one)
+  reef:             300,  // per person
+  bridge:           380,  // per person
+  stdActivity:      45,   // per person per visit
+  dayTrip:          150,  // per person per trip
+};
+
+// ─── CURRENCY EXCHANGE LOGIC (LIVE API + FALLBACK) ───
+// Hum default/manual rates set kar rahe hain taake agar kabhi internet slow ho toh calculator chalta rahe
+let FX = { PKR: 185, USD: 0.65, GBP: 0.52 }; 
+
+async function fetchLiveRates() {
+  try {
+    // 100% Free Live API call
+    const response = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/aud.json');
+    const data = await response.json();
+    
+    // Live rates ko apne system mein update karna
+    FX.PKR = data.aud.pkr;
+    FX.USD = data.aud.usd;
+    FX.GBP = data.aud.gbp;
+    
+    // Naye rates aane ke baad total automatically update kar dena
+    calculate(); 
+  } catch (error) {
+    console.log("Live rates fetch nahi ho sake, manual rates use ho rahe hain.");
+  }
+}
+
+// Page load hone par API ko call karna
+fetchLiveRates();
+
+// ─── HELPERS ────────────────────────────────────────────────
+const fmt      = n => 'A$' + Math.round(n).toLocaleString('en-AU');
+const fmtPlain = n => Math.round(n).toLocaleString('en-AU');
+const val      = id => parseFloat(document.getElementById(id).value) || 0;
+const chk      = id => document.getElementById(id).checked;
+const radio    = name => document.querySelector(`input[name="${name}"]:checked`)?.value;
+
+function toggleCard(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+function handleTransportChange() {
+  const v = document.getElementById('transport').value;
+  document.getElementById('flightsField').classList.toggle('show', v === 'flights');
+  calculate();
+}
+
+// ─── MAIN CALCULATION ────────────────────────────────────────
+function calculate() {
+  // ── RAW INPUTS ──
+  const adults    = Math.max(1, val('adults'));
+  const children  = Math.max(0, val('children'));
+  const days      = Math.max(1, val('days'));
+  const total     = adults + children;
+  const style     = radio('style')   || 'moderate';
+  const season    = radio('season')  || 'normal';
+  const city      = radio('city')    || 'tier1';
+  const transport = document.getElementById('transport').value;
+  const airport   = radio('airport') || 'train';
+
+  // ── MULTIPLIERS ──
+  const peakMult = (season === 'peak')  ? 1.25 : 1.0;  // +25% to accom & campervan only
+  const cityMult = (city   === 'tier2') ? 0.85 : 1.0;  // -15% to accom & food only
+
+  // ────────────────────────────────────────────────────────────
+  // 1. ACCOMMODATION
+  //    FIX 1: Rooms = ceil((adults + children) / 2)  — children need space too
+  //    Modifiers: cityMult (Tier 2 -15%), peakMult (Peak +25%)
+  //    Child discount: 0% (children counted same as adults for room sizing)
+  // ────────────────────────────────────────────────────────────
+  const rooms = Math.max(1, Math.ceil((adults + children) / 2));
+  const accom = PRICES.accom[style] * rooms * days * cityMult * peakMult;
+
+  // ────────────────────────────────────────────────────────────
+  // 2. FOOD & DRINKS
+  //    Adults: full rate | Children: 50% discount
+  //    City modifier: -15% for Tier 2
+  // ────────────────────────────────────────────────────────────
+  const food = (adults * PRICES.food[style] + children * PRICES.food[style] * 0.5) * days * cityMult;
+
+  // ────────────────────────────────────────────────────────────
+  // 3. TRANSPORT
+  //    FIX 3: Car Rental or Campervan → NO daily public transport (they're driving)
+  //           None or Domestic Flights → YES daily public transport
+  //    Public transport child discount: 50%
+  //    Campervan: subject to peakMult (+25% in peak season)
+  //    Airport transfer counted as round-trip (×2)
+  //    FIX 4: Train = $20 × total persons × 2
+  //           Rideshare = $65 flat × 2 (covers the whole group)
+  // ────────────────────────────────────────────────────────────
+  let transportCost = 0;
+
+  if (transport === 'none') {
+    // Staying in one city — only public transport for the whole trip
+    transportCost += (adults + children * 0.5) * PRICES.publicTransport * days;
+
+  } else if (transport === 'flights') {
+    // Domestic flights per person + public transport for city days
+    const numFlights = Math.max(1, val('numFlights'));
+    transportCost += PRICES.flights * numFlights * total;
+    transportCost += (adults + children * 0.5) * PRICES.publicTransport * days;
+
+  } else if (transport === 'car') {
+    // Car rental covers all ground movement — NO separate public transport
+    transportCost += PRICES.carRental * days;
+
+  } else if (transport === 'campervan') {
+    // Campervan covers all ground movement — NO separate public transport
+    // peakMult applies to campervan cost (same as accommodation rule)
+    transportCost += PRICES.campervan * days * peakMult;
+  }
+
+  // Airport transfer — round trip (arrive + depart = ×2)
+  if (airport === 'train') {
+    // Train/Bus: $20 per person each way
+    transportCost += PRICES.airportTrain * total * 2;
+  } else {
+    // Rideshare/Taxi: $65 flat rate each way (covers whole group)
+    transportCost += PRICES.airportRideshare * 2;
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // 4. ACTIVITIES & TOURS
+  //    Adults: full price | Children: 30% discount (pay 70%)
+  // ────────────────────────────────────────────────────────────
+  const actPeople = adults + children * 0.70;
+  let activities = 0;
+  if (chk('reef'))   activities += PRICES.reef        * actPeople;
+  if (chk('bridge')) activities += PRICES.bridge      * actPeople;
+  activities += val('standardActivities') * PRICES.stdActivity * actPeople;
+  activities += val('dayTrips')           * PRICES.dayTrip     * actPeople;
+
+  // ────────────────────────────────────────────────────────────
+  // 5. FIXED ONE-TIME COSTS
+  //    FIX 2: Visa  → applies to EVERYONE (adults + children)
+  //           SIM   → applies to ADULTS ONLY (children don't need SIM cards)
+  //    Insurance → ceil(days / 7) weeks × $65 × total persons
+  // ────────────────────────────────────────────────────────────
+  let fixed = 0;
+  if (chk('visa'))      fixed += PRICES.visa      * total;                         // FIX 2a: all persons
+  if (chk('insurance')) fixed += Math.ceil(days / 7) * PRICES.insurance * total;
+  if (chk('sim'))       fixed += PRICES.sim       * adults;                        // FIX 2b: adults only
+
+  // ────────────────────────────────────────────────────────────
+  // 6. SUBTOTAL → CARD SURCHARGE → GRAND TOTAL
+  //    1.5% surcharge applied to the subtotal (Australian tap-to-pay fees)
+  // ────────────────────────────────────────────────────────────
+  const subtotal   = accom + food + transportCost + activities + fixed;
+  const surcharge  = subtotal * 0.015;
+  const grandTotal = subtotal + surcharge;
+
+  // ── UPDATE DOM ──────────────────────────────────────────────
+  document.getElementById('grandTotalVal').textContent    = fmtPlain(grandTotal);
+  document.getElementById('perDayBadge').textContent      = fmt(grandTotal / days) + ' / day';
+  document.getElementById('bAccom').textContent           = fmt(accom);
+  document.getElementById('bFood').textContent            = fmt(food);
+  document.getElementById('bTransport').textContent       = fmt(transportCost);
+  document.getElementById('bActivities').textContent      = fmt(activities);
+  document.getElementById('bFixed').textContent           = fmt(fixed);
+  document.getElementById('subtotalVal').textContent      = fmt(subtotal);
+  document.getElementById('bSurcharge').textContent       = fmt(surcharge);
+  document.getElementById('grandTotalRow').textContent    = fmt(grandTotal);
+
+  // ── CURRENCY CONVERSION ─────────────────────────────────────
+  document.getElementById('cPKR').textContent = '₨ ' + Math.round(grandTotal * FX.PKR).toLocaleString('en-PK');
+  document.getElementById('cUSD').textContent = '$ '  + Math.round(grandTotal * FX.USD).toLocaleString('en-US');
+  document.getElementById('cGBP').textContent = '£ '  + Math.round(grandTotal * FX.GBP).toLocaleString('en-GB');
+}
+
+// ─── WIRE UP ALL INPUTS → REAL-TIME RECALCULATION ───────────
+document.addEventListener('DOMContentLoaded', () => {
+  calculate(); // initial calculation on page load
+
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('change', calculate);
+    if (el.type === 'number') el.addEventListener('input', calculate);
+  });
+});
+</script>
+</body>
+</html>
